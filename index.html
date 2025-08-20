@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Réponse — Refus poli</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 40px; line-height: 1.6; color: #0f172a; }
+    .card { max-width: 760px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); background: #ffffff; }
+    h1 { font-size: 1.5rem; margin-top: 0; }
+    .muted { color: #6b7280; font-size: 0.95rem; }
+    .block { white-space: pre-line; background: #f9fafb; border: 1px solid #e5e7eb; padding: 16px; border-radius: 12px; }
+    .row { margin-top: 16px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px; }
+    button { cursor: pointer; border: none; padding: 10px 14px; border-radius: 10px; background: #111827; color: white; }
+    button:hover { opacity: 0.95; }
+    .footer { margin-top: 24px; font-size: 0.9rem; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Modèle d'email — Refus poli</h1>
+    <p class="muted">Copiez-collez le texte ci-dessous dans votre client email. Vous pouvez personnaliser le nom et l'objet.</p>
+    <div class="row">
+      <label for="objet">Objet</label>
+      <input id="objet" value="Réponse à votre sollicitation" />
+    </div>
+    <div class="row">
+      <label for="nom">Votre nom</label>
+      <input id="nom" value="[Votre nom]" />
+    </div>
+    <div class="row">
+      <label>Texte</label>
+      <div id="texte" class="block">
+Objet : <span id="objetSpan">Réponse à votre sollicitation</span>
+
+Bonjour,
+
+Je vous remercie pour votre message et la proposition concernant la participation.
+Cependant, je ne pourrai pas y prendre part cette fois-ci.
+
+Je reste néanmoins disponible pour d’éventuelles prochaines opportunités.
+
+Bien cordialement,
+<span id="nomSpan">[Votre nom]</span>
+      </div>
+    </div>
+    <div class="row">
+      <button id="copyBtn">Copier le texte</button>
+    </div>
+    <p class="footer">Astuce : remplacez les champs puis cliquez sur « Copier le texte ».</p>
+  </div>
+
+  <script>
+    const objetInput = document.getElementById('objet');
+    const nomInput = document.getElementById('nom');
+    const objetSpan = document.getElementById('objetSpan');
+    const nomSpan = document.getElementById('nomSpan');
+    const copyBtn = document.getElementById('copyBtn');
+    const texte = document.getElementById('texte');
+
+    function update() {
+      objetSpan.textContent = objetInput.value || 'Réponse à votre sollicitation';
+      nomSpan.textContent = nomInput.value || '[Votre nom]';
+    }
+    objetInput.addEventListener('input', update);
+    nomInput.addEventListener('input', update);
+
+    copyBtn.addEventListener('click', async () => {
+      // Get plain text from the block, replacing spans with their textContent
+      const temp = document.createElement('div');
+      temp.innerHTML = texte.innerHTML;
+      // Remove extra spaces and keep newlines
+      const plain = temp.textContent.replace(/^[\s\n]+|[\s\n]+$/g, '');
+      try {
+        await navigator.clipboard.writeText(plain);
+        copyBtn.textContent = 'Copié !';
+        setTimeout(() => (copyBtn.textContent = 'Copier le texte'), 2000);
+      } catch (e) {
+        // Fallback: select range
+        const range = document.createRange();
+        range.selectNodeContents(texte);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        copyBtn.textContent = 'Sélectionné – Ctrl/Cmd+C';
+        setTimeout(() => (copyBtn.textContent = 'Copier le texte'), 3000);
+      }
+    });
+  </script>
+</body>
+</html>
