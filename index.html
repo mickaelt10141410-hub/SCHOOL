@@ -1,248 +1,228 @@
-# Create an HTML file with three mini-games: Tic-Tac-Toe, Memory (Pairs), and Number Guessing.
-html = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mini‑Jeux</title>
-  <style>
-    :root{
-      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --acc:#22c55e; --line:#1f2937; --text:#e5e7eb;
-    }
-    *{box-sizing:border-box}
-    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:linear-gradient(120deg,#0b1224,#0f172a); color:var(--text);}
-    header{padding:28px 20px; text-align:center;}
-    h1{margin:0 0 8px; font-size:clamp(1.2rem,2.5vw,2rem)}
-    .sub{color:var(--muted)}
-    .shell{max-width:980px; margin:0 auto; padding:0 16px 40px}
-    .card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.35);}
-    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
-    .tab{padding:10px 14px; border-radius:12px; background:orange; border:1px solid var(--line); cursor:pointer; user-select:none}
-    .tab.active{background:var(--acc); color:#052e16; border-color:#14532d; font-weight:700}
-    .grid{display:grid; gap:16px}
-    @media(min-width:900px){ .grid{grid-template-columns: 1fr 1fr} }
-    .section{display:none}
-    .section.active{display:block}
-    .actions{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 6px}
-    button{background:orange; color:var(--text); border:1px solid var(--line); border-radius:12px; padding:10px 14px; cursor:pointer}
-    button:hover{border-color:#374151}
-    .muted{color:var(--muted); font-size:.95rem}
-    /* TicTacToe */
-    .ttt{display:grid; grid-template-columns:repeat(3,100px); gap:8px; margin:16px 0}
-    .ttt button{width:100px; height:100px; font-size:2rem; font-weight:800; border-radius:14px}
-    .status{min-height:24px; margin-top:8px}
-    /* Memory */
-    .board{display:grid; grid-template-columns:repeat(4,minmax(60px,110px)); gap:10px; margin:16px 0; justify-content:center}
-    .tile{height:110px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; background:orange; border:1px solid var(--line)}
-    .tile.revealed, .tile.matched{background:var(--acc); color:#052e16; border-color:#14532d; font-weight:800}
-    /* Guess */
-    .guess-wrap{display:flex; gap:10px; align-items:center; margin:16px 0}
-    input[type=number]{padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:orange; color:var(--text); width:140px}
-    .log{background:orange; border:1px solid var(--line); border-radius:12px; padding:10px; min-height:54px}
-    .pill{display:inline-block; background:orange; border:1px solid var(--line); padding:6px 10px; border-radius:999px}
-  </style>
+<meta charset="UTF-8">
+<title>Mini Jeux avec Authentification</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #1e293b;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 { margin: 0; color: orange; }
+  nav { margin-top: 10px; }
+  nav button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 10px;
+    background: orange;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .tab { display: none; padding: 20px; }
+  .tab.active { display: block; }
+  .shell { display: none; } /* masqué tant que pas connecté */
+
+  /* --- Authentification --- */
+  .auth{
+    position:fixed; inset:0; background:#0f172a;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    gap:12px; z-index:9999;
+  }
+  .auth input, .auth button{
+    padding:10px 14px; border-radius:10px; border:none;
+  }
+  .auth input{width:200px;}
+  .auth button{background:orange; cursor:pointer;}
+</style>
 </head>
 <body>
+
+<!-- Boîte d’authentification -->
+<div id="authBox" class="auth">
+  <h2>🔑 Authentification</h2>
+  <input type="password" id="authPass" placeholder="Mot de passe">
+  <button id="authBtn">Entrer</button>
+  <p id="authMsg"></p>
+</div>
+
+<!-- Contenu du site (masqué au début) -->
+<div class="shell">
   <header>
-    <h1>Mini‑Jeux 🎮</h1>
-    <div class="sub">Trois petits jeux hors‑ligne : Morpion, Memory et Devinette de nombre.</div>
+    <h1>Mini Jeux 🎮</h1>
+    <nav>
+      <button onclick="openTab('morpion')">Morpion</button>
+      <button onclick="openTab('memory')">Memory</button>
+      <button onclick="openTab('guess')">Devinette</button>
+    </nav>
   </header>
-  <div class="shell">
-    <div class="card">
-      <div class="tabs">
-        <div class="tab active" data-target="tttSec">Morpion (Tic‑Tac‑Toe)</div>
-        <div class="tab" data-target="memSec">Memory (Paires)</div>
-        <div class="tab" data-target="guessSec">Devinette</div>
-      </div>
 
-      <!-- Tic Tac Toe -->
-      <section id="tttSec" class="section active">
-        <div class="grid">
-          <div>
-            <h3>Morpion — 2 joueurs</h3>
-            <div class="muted">Tour par tour sur le même écran. Le premier à aligner 3 symboles gagne.</div>
-            <div class="ttt" id="tttBoard"></div>
-            <div class="actions">
-              <button id="tttReset">Rejouer</button>
-              <span class="pill" id="tttTurn">Tour : X</span>
-            </div>
-            <div class="status" id="tttStatus"></div>
-          </div>
-          <div>
-            <h3>Score</h3>
-            <div class="muted">Parties cumulées durant cette session.</div>
-            <p>X : <b id="scoreX">0</b> &nbsp; | &nbsp; O : <b id="scoreO">0</b> &nbsp; | &nbsp; Nul : <b id="scoreN">0</b></p>
-          </div>
-        </div>
-      </section>
+  <section id="morpion" class="tab active">
+    <h2>Morpion</h2>
+    <table id="board"></table>
+    <p id="status"></p>
+  </section>
 
-      <!-- Memory -->
-      <section id="memSec" class="section">
-        <h3>Memory — retrouvez les paires</h3>
-        <div class="actions">
-          <button id="memNew">Nouvelle partie</button>
-          <span class="pill">Coups : <b id="memMoves">0</b></span>
-          <span class="pill">Paires : <b id="memPairs">0</b>/8</span>
-        </div>
-        <div class="board" id="memBoard"></div>
-        <div class="status" id="memStatus"></div>
-      </section>
+  <section id="memory" class="tab">
+    <h2>Memory</h2>
+    <div id="memoryGame"></div>
+  </section>
 
-      <!-- Guessing -->
-      <section id="guessSec" class="section">
-        <h3>Devinette — trouvez le nombre (1‑100)</h3>
-        <div class="guess-wrap">
-          <input type="number" id="guessInput" min="1" max="100" placeholder="Votre essai">
-          <button id="guessBtn">Tenter</button>
-          <button id="guessNew">Nouvelle partie</button>
-        </div>
-        <div class="log" id="guessLog"></div>
-      </section>
-    </div>
-  </div>
+  <section id="guess" class="tab">
+    <h2>Devinette</h2>
+    <p>Devine un nombre entre 1 et 10</p>
+    <input type="number" id="guessInput" min="1" max="10">
+    <button onclick="checkGuess()">Vérifier</button>
+    <p id="guessResult"></p>
+  </section>
+</div>
 
-  <script>
-    // Tabs
-    document.querySelectorAll('.tab').forEach(t=>{
-      t.addEventListener('click',()=>{
-        document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        t.classList.add('active');
-        document.getElementById(t.dataset.target).classList.add('active');
-      });
-    });
+<script>
+// --- Authentification ---
+const authBox = document.getElementById("authBox");
+const authBtn = document.getElementById("authBtn");
+const authPass = document.getElementById("authPass");
+const authMsg = document.getElementById("authMsg");
+const shell = document.querySelector(".shell");
 
-    // Tic Tac Toe
-    const tttBoard = document.getElementById('tttBoard');
-    const tttReset = document.getElementById('tttReset');
-    const tttStatus = document.getElementById('tttStatus');
-    const tttTurn = document.getElementById('tttTurn');
-    const scoreX = document.getElementById('scoreX');
-    const scoreO = document.getElementById('scoreO');
-    const scoreN = document.getElementById('scoreN');
-    let tttState, turn, finished;
-    let sx=0, so=0, sn=0;
+let savedPass = localStorage.getItem("gamePass");
 
-    function newTTT(){
-      tttState = Array(9).fill('');
-      turn = 'X'; finished=false;
-      tttBoard.innerHTML='';
-      tttStatus.textContent='';
-      tttTurn.textContent='Tour : '+turn;
-      for(let i=0;i<9;i++){
-        const b=document.createElement('button');
-        b.addEventListener('click',()=>playTTT(i,b));
-        b.textContent='';
-        tttBoard.appendChild(b);
-      }
+authBtn.addEventListener("click", ()=>{
+  const val = authPass.value.trim();
+  if(!val){
+    authMsg.textContent = "Entrez un mot de passe.";
+    return;
+  }
+  if(!savedPass){
+    localStorage.setItem("gamePass", val);
+    savedPass = val;
+    authMsg.textContent = "✅ Mot de passe créé. Bienvenue !";
+    openSite();
+  }else{
+    if(val === savedPass){
+      authMsg.textContent = "✅ Connexion réussie.";
+      openSite();
+    }else{
+      authMsg.textContent = "❌ Mot de passe incorrect.";
     }
-    function checkWin(s){
-      const w=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-      for(const [a,b,c] of w){
-        if(s[a] && s[a]===s[b] && s[a]===s[c]) return s[a];
-      }
-      if(s.every(x=>x)) return 'N';
-      return null;
-    }
-    function playTTT(i,btn){
-      if(finished || tttState[i]) return;
-      tttState[i]=turn; btn.textContent=turn;
-      const res = checkWin(tttState);
-      if(res){
-        finished=true;
-        if(res==='N'){ tttStatus.textContent='Match nul.'; sn++; scoreN.textContent=sn; }
-        else{
-          tttStatus.textContent='Victoire de '+res+' !';
-          if(res==='X'){sx++; scoreX.textContent=sx;} else {so++; scoreO.textContent=so;}
-        }
-        return;
-      }
-      turn = turn==='X'?'O':'X';
-      tttTurn.textContent='Tour : '+turn;
-    }
-    tttReset.addEventListener('click', newTTT);
-    newTTT();
+  }
+});
 
-    // Memory
-    const memBoard = document.getElementById('memBoard');
-    const memNew = document.getElementById('memNew');
-    const memMoves = document.getElementById('memMoves');
-    const memPairs = document.getElementById('memPairs');
-    const memStatus = document.getElementById('memStatus');
-    let memState, memFirst, memLock, pairs, moves;
-    const EMOJI = ['🍎','🍌','🍒','🍇','🍉','🍍','🥝','🍑'];
+function openSite(){
+  authBox.style.display="none";
+  shell.style.display="block";
+}
 
-    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
+// --- Tabs ---
+function openTab(tabId) {
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+}
 
-    function newMemory(){
-      const items = shuffle([...EMOJI, ...EMOJI]);
-      memState = items.map(v=>({v, revealed:false, matched:false}));
-      memBoard.innerHTML='';
-      memFirst=null; memLock=false; pairs=0; moves=0;
-      memMoves.textContent=moves; memPairs.textContent=pairs; memStatus.textContent='';
-      memState.forEach((cell,idx)=>{
-        const d=document.createElement('div');
-        d.className='tile';
-        d.textContent='?';
-        d.addEventListener('click',()=>flip(idx,d));
-        memBoard.appendChild(d);
-      });
-    }
+// --- Jeu du Morpion ---
+const board = document.getElementById("board");
+const statusText = document.getElementById("status");
+let currentPlayer = "X";
 
-    function flip(i,el){
-      if(memLock) return;
-      const c=memState[i];
-      if(c.revealed || c.matched) return;
-      c.revealed=true; el.classList.add('revealed'); el.textContent=c.v;
-      if(memFirst==null){ memFirst=i; return; }
-      moves++; memMoves.textContent=moves;
-      const f=memState[memFirst];
-      if(f.v===c.v){
-        f.matched=c.matched=true;
-        document.querySelectorAll('.tile')[memFirst].classList.add('matched');
-        el.classList.add('matched');
-        pairs++; memPairs.textContent=pairs;
-        memFirst=null;
-        if(pairs===8){ memStatus.textContent='Bravo ! Toutes les paires trouvées en '+moves+' coups.'; }
-      }else{
-        memLock=true;
-        setTimeout(()=>{
-          f.revealed=c.revealed=false;
-          const tiles=document.querySelectorAll('.tile');
-          tiles[memFirst].classList.remove('revealed'); tiles[memFirst].textContent='?';
-          el.classList.remove('revealed'); el.textContent='?';
-          memFirst=null; memLock=false;
-        },700);
-      }
+function initBoard() {
+  board.innerHTML = "";
+  for(let i=0;i<3;i++){
+    let row = board.insertRow();
+    for(let j=0;j<3;j++){
+      let cell = row.insertCell();
+      cell.addEventListener("click", ()=>makeMove(cell));
     }
-    memNew.addEventListener('click', newMemory);
-    newMemory();
+  }
+}
+function makeMove(cell){
+  if(cell.textContent===""){
+    cell.textContent = currentPlayer;
+    if(checkWinner()){
+      statusText.textContent = currentPlayer+" a gagné!";
+    } else {
+      currentPlayer = currentPlayer==="X"?"O":"X";
+    }
+  }
+}
+function checkWinner(){
+  const cells = board.getElementsByTagName("td");
+  const lines = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  return lines.some(line => 
+    cells[line[0]].textContent &&
+    cells[line[0]].textContent === cells[line[1]].textContent &&
+    cells[line[1]].textContent === cells[line[2]].textContent
+  );
+}
+initBoard();
 
-    // Guessing game
-    const guessInput=document.getElementById('guessInput');
-    const guessBtn=document.getElementById('guessBtn');
-    const guessNew=document.getElementById('guessNew');
-    const guessLog=document.getElementById('guessLog');
-    let secret, tries;
-    function newGuess(){
-      secret = Math.floor(Math.random()*100)+1;
-      tries = 0;
-      guessLog.textContent='Je pense à un nombre entre 1 et 100. À vous de jouer !';
-      guessInput.value=''; guessInput.focus();
+// --- Jeu Memory ---
+const memoryGame = document.getElementById("memoryGame");
+const cardsArray = ["🍎","🍌","🍇","🍎","🍌","🍇"];
+let firstCard, secondCard;
+function initMemory(){
+  memoryGame.innerHTML="";
+  let cards = [...cardsArray].sort(()=>0.5-Math.random());
+  cards.forEach(symbol=>{
+    let card=document.createElement("div");
+    card.textContent="?";
+    card.style.display="inline-block";
+    card.style.width="50px";
+    card.style.height="50px";
+    card.style.border="1px solid #fff";
+    card.style.margin="5px";
+    card.style.textAlign="center";
+    card.style.lineHeight="50px";
+    card.style.fontSize="24px";
+    card.style.cursor="pointer";
+    card.dataset.symbol=symbol;
+    card.addEventListener("click", ()=>flipCard(card));
+    memoryGame.appendChild(card);
+  });
+}
+function flipCard(card){
+  if(!firstCard){
+    firstCard=card;
+    card.textContent=card.dataset.symbol;
+  }else if(!secondCard && card!==firstCard){
+    secondCard=card;
+    card.textContent=card.dataset.symbol;
+    if(firstCard.dataset.symbol===secondCard.dataset.symbol){
+      firstCard=null; secondCard=null;
+    }else{
+      setTimeout(()=>{
+        firstCard.textContent="?";
+        secondCard.textContent="?";
+        firstCard=null; secondCard=null;
+      },1000);
     }
-    function tryGuess(){
-      const v = Number(guessInput.value);
-      if(!v || v<1 || v>100){ guessLog.textContent='Entrez un nombre valide entre 1 et 100.'; return; }
-      tries++;
-      if(v===secret){ guessLog.textContent='🎉 Bravo ! '+v+' est correct. Trouvé en '+tries+' essais.'; }
-      else if(v<secret){ guessLog.textContent='Trop petit. Essayez encore.'; }
-      else{ guessLog.textContent='Trop grand. Essayez encore.'; }
-      guessInput.select();
-    }
-    guessBtn.addEventListener('click', tryGuess);
-    guessInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryGuess(); });
-    guessNew.addEventListener('click', newGuess);
-    newGuess();
-  </script>
+  }
+}
+initMemory();
+
+// --- Jeu Devinette ---
+let secretNumber = Math.floor(Math.random()*10)+1;
+function checkGuess(){
+  const guess = parseInt(document.getElementById("guessInput").value);
+  if(guess===secretNumber){
+    document.getElementById("guessResult").textContent="✅ Bravo!";
+  }else{
+    document.getElementById("guessResult").textContent="❌ Raté, essaie encore.";
+  }
+}
+</script>
+
 </body>
 </html>
