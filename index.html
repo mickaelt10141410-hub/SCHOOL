@@ -2,243 +2,291 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>8 Jeux Simples en JavaScript</title>
+  <title>Jeux avec Authentification</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #333;
-      color: #fff;
-      padding: 10px;
-      text-align: center;
-    }
-    nav {
-      display: flex;
-      justify-content: center;
-      background: #444;
-      flex-wrap: wrap;
-    }
-    nav button {
-      background: #666;
-      color: white;
-      border: none;
-      margin: 5px;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    nav button:hover {
-      background: #999;
-    }
-    section {
-      display: none;
-      padding: 20px;
-      text-align: center;
-    }
-    .active {
-      display: block;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 80px);
-      gap: 10px;
-      justify-content: center;
-    }
-    .card {
-      background: #ccc;
-      padding: 20px;
-      font-size: 24px;
-      cursor: pointer;
-      border-radius: 8px;
-    }
-    .hidden {
-      background: #444;
-      color: transparent;
-    }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin:0; padding:0; }
+    header { background:#333; color:white; text-align:center; padding:10px; position:relative; }
+    #logout-btn { position:absolute; right:10px; top:10px; background:#c00; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:5px; display:none; }
+    nav { display:flex; justify-content:center; flex-wrap:wrap; background:#444; }
+    nav button { margin:5px; padding:10px; border:none; border-radius:5px; cursor:pointer; color:white; background:#666; }
+    nav button:hover { background:#888; }
+    section { display:none; padding:20px; text-align:center; }
+    .active { display:block; }
+    .hidden { display:none; }
+    .card { background:#ccc; padding:20px; font-size:24px; cursor:pointer; border-radius:8px; }
+    .grid { display:grid; grid-template-columns:repeat(4,80px); gap:10px; justify-content:center; }
+    form { margin:20px auto; max-width:300px; background:white; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
+    form input { width:100%; margin:5px 0; padding:10px; }
+    form button { width:100%; padding:10px; background:#333; color:white; border:none; cursor:pointer; }
+    form button:hover { background:#555; }
   </style>
 </head>
 <body>
   <header>
-    <h1>🎮 8 Jeux Simples en JavaScript</h1>
+    <h1>🎮 Jeux en JavaScript</h1>
+    <p id="welcome"></p>
+    <button id="logout-btn" onclick="logout()">Déconnexion</button>
   </header>
 
-  <nav>
-    <button onclick="showGame('quiz')">Quiz</button>
-    <button onclick="showGame('devinette')">Devinette</button>
-    <button onclick="showGame('pfc')">Pierre Feuille Ciseaux</button>
-    <button onclick="showGame('memory')">Memory</button>
-    <button onclick="showGame('morpion')">Morpion</button>
-    <button onclick="showGame('reflexe')">Jeu de Réflexe</button>
-    <button onclick="showGame('pendu')">Pendu</button>
-    <button onclick="showGame('math')">Calcul Mental</button>
-  </nav>
+  <!-- Authentification -->
+  <section id="auth" class="active">
+    <h2>Connexion</h2>
+    <form onsubmit="login(event)">
+      <input type="text" id="login-username" placeholder="Nom d'utilisateur" required>
+      <input type="password" id="login-password" placeholder="Mot de passe" required>
+      <button type="submit">Se connecter</button>
+    </form>
 
-  <!-- 1. QUIZ -->
-  <section id="quiz" class="active">
-    <h2>Quiz</h2>
-    <p id="quiz-question"></p>
-    <div id="quiz-options"></div>
-    <p id="quiz-result"></p>
-    <button onclick="nextQuiz()">Suivant</button>
+    <h2>Créer un compte</h2>
+    <form onsubmit="register(event)">
+      <input type="text" id="reg-username" placeholder="Nom d'utilisateur" required>
+      <input type="password" id="reg-password" placeholder="Mot de passe" required>
+      <input type="password" id="reg-repassword" placeholder="Confirmer le mot de passe" required>
+      <button type="submit">S'inscrire</button>
+    </form>
+
+    <h2>Mot de passe oublié</h2>
+    <form onsubmit="resetPassword(event)">
+      <input type="text" id="reset-username" placeholder="Nom d'utilisateur" required>
+      <button type="submit">Réinitialiser</button>
+    </form>
+    <p id="auth-message"></p>
   </section>
 
-  <!-- 2. Devinette -->
-  <section id="devinette">
-    <h2>Devinette (Nombre Mystère)</h2>
-    <p>Devine le nombre entre 1 et 100</p>
-    <input type="number" id="guess" />
-    <button onclick="checkGuess()">Vérifier</button>
-    <p id="result"></p>
-  </section>
+  <!-- Jeux -->
+  <section id="games">
+    <nav>
+      <button onclick="showGame('quiz')">Quiz</button>
+      <button onclick="showGame('devinette')">Devinette</button>
+      <button onclick="showGame('pfc')">Pierre Feuille Ciseaux</button>
+      <button onclick="showGame('memory')">Memory</button>
+      <button onclick="showGame('morpion')">Morpion</button>
+      <button onclick="showGame('reflexe')">Réflexe</button>
+      <button onclick="showGame('pendu')">Pendu</button>
+      <button onclick="showGame('math')">Calcul Mental</button>
+    </nav>
 
-  <!-- 3. Pierre Feuille Ciseaux -->
-  <section id="pfc">
-    <h2>Pierre Feuille Ciseaux</h2>
-    <button onclick="playPFC('pierre')">🪨 Pierre</button>
-    <button onclick="playPFC('feuille')">📄 Feuille</button>
-    <button onclick="playPFC('ciseaux')">✂️ Ciseaux</button>
-    <p id="pfc-result"></p>
-  </section>
+    <!-- 1. Quiz -->
+    <section id="quiz" class="active">
+      <h2>Quiz</h2>
+      <p id="quiz-question"></p>
+      <div id="quiz-options"></div>
+      <p id="quiz-result"></p>
+      <button onclick="nextQuiz()">Suivant</button>
+    </section>
 
-  <!-- 4. Memory -->
-  <section id="memory">
-    <h2>Memory</h2>
-    <div class="grid" id="memory-grid"></div>
-    <p id="memory-result"></p>
-  </section>
+    <!-- 2. Devinette -->
+    <section id="devinette">
+      <h2>Devinette (Nombre Mystère)</h2>
+      <p>Devine le nombre entre 1 et 100</p>
+      <input type="number" id="guess" />
+      <button onclick="checkGuess()">Vérifier</button>
+      <p id="result"></p>
+    </section>
 
-  <!-- 5. Morpion -->
-  <section id="morpion">
-    <h2>Morpion</h2>
-    <div class="grid" style="grid-template-columns: repeat(3, 80px);" id="board"></div>
-    <p id="winner"></p>
-  </section>
+    <!-- 3. Pierre Feuille Ciseaux -->
+    <section id="pfc">
+      <h2>Pierre Feuille Ciseaux</h2>
+      <button onclick="playPFC('pierre')">🪨 Pierre</button>
+      <button onclick="playPFC('feuille')">📄 Feuille</button>
+      <button onclick="playPFC('ciseaux')">✂️ Ciseaux</button>
+      <p id="pfc-result"></p>
+    </section>
 
-  <!-- 6. Jeu de réflexe -->
-  <section id="reflexe">
-    <h2>Jeu de Réflexe</h2>
-    <p>Clique sur le carré dès qu'il apparaît !</p>
-    <div id="square" style="width:80px; height:80px; background:red; display:none; margin:auto;"></div>
-    <p id="time"></p>
-    <button onclick="startReflex()">Commencer</button>
-  </section>
+    <!-- 4. Memory -->
+    <section id="memory">
+      <h2>Memory</h2>
+      <div class="grid" id="memory-grid"></div>
+    </section>
 
-  <!-- 7. Pendu -->
-  <section id="pendu">
-    <h2>Pendu</h2>
-    <p id="word"></p>
-    <input type="text" id="letter" maxlength="1"/>
-    <button onclick="guessLetter()">Proposer</button>
-    <p id="pendu-result"></p>
-  </section>
+    <!-- 5. Morpion -->
+    <section id="morpion">
+      <h2>Morpion</h2>
+      <div class="grid" style="grid-template-columns:repeat(3,80px);" id="board"></div>
+      <p id="winner"></p>
+    </section>
 
-  <!-- 8. Calcul mental -->
-  <section id="math">
-    <h2>Calcul Mental</h2>
-    <p id="math-question"></p>
-    <input type="number" id="math-answer"/>
-    <button onclick="checkMath()">Vérifier</button>
-    <p id="math-result"></p>
+    <!-- 6. Réflexe -->
+    <section id="reflexe">
+      <h2>Jeu de Réflexe</h2>
+      <p>Clique sur le carré dès qu'il apparaît !</p>
+      <div id="square" style="width:80px; height:80px; background:red; display:none; margin:auto;"></div>
+      <p id="time"></p>
+      <button onclick="startReflex()">Commencer</button>
+    </section>
+
+    <!-- 7. Pendu -->
+    <section id="pendu">
+      <h2>Pendu</h2>
+      <p id="word"></p>
+      <input type="text" id="letter" maxlength="1"/>
+      <button onclick="guessLetter()">Proposer</button>
+      <p id="pendu-result"></p>
+    </section>
+
+    <!-- 8. Calcul mental -->
+    <section id="math">
+      <h2>Calcul Mental</h2>
+      <p id="math-question"></p>
+      <input type="number" id="math-answer"/>
+      <button onclick="checkMath()">Vérifier</button>
+      <p id="math-result"></p>
+    </section>
   </section>
 
   <script>
-    // Navigation
+    // -------- AUTHENTIFICATION ----------
+    let currentUser = null;
+
+    function saveUsers(users) {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+    function loadUsers() {
+      return JSON.parse(localStorage.getItem("users") || "{}");
+    }
+
+    function login(e) {
+      e.preventDefault();
+      let u = document.getElementById("login-username").value;
+      let p = document.getElementById("login-password").value;
+      let users = loadUsers();
+      if (users[u] && users[u] === p) {
+        currentUser = u;
+        document.getElementById("welcome").innerText = "Bienvenue, " + u;
+        document.getElementById("auth").style.display = "none";
+        document.getElementById("games").style.display = "block";
+        document.getElementById("logout-btn").style.display = "inline-block";
+      } else {
+        document.getElementById("auth-message").innerText = "❌ Identifiants incorrects";
+      }
+    }
+
+    function register(e) {
+      e.preventDefault();
+      let u = document.getElementById("reg-username").value;
+      let p = document.getElementById("reg-password").value;
+      let rp = document.getElementById("reg-repassword").value;
+      if (p !== rp) {
+        document.getElementById("auth-message").innerText = "❌ Les mots de passe ne correspondent pas";
+        return;
+      }
+      let users = loadUsers();
+      if (users[u]) {
+        document.getElementById("auth-message").innerText = "❌ Utilisateur déjà existant";
+        return;
+      }
+      users[u] = p;
+      saveUsers(users);
+      document.getElementById("auth-message").innerText = "✅ Compte créé, connectez-vous";
+    }
+
+    function resetPassword(e) {
+      e.preventDefault();
+      let u = document.getElementById("reset-username").value;
+      let users = loadUsers();
+      if (users[u]) {
+        users[u] = "1234"; // mot de passe par défaut
+        saveUsers(users);
+        document.getElementById("auth-message").innerText = "🔑 Mot de passe réinitialisé : 1234";
+      } else {
+        document.getElementById("auth-message").innerText = "❌ Utilisateur inconnu";
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById("welcome").innerText = "";
+      document.getElementById("games").style.display = "none";
+      document.getElementById("auth").style.display = "block";
+      document.getElementById("logout-btn").style.display = "none";
+    }
+
+    // -------- NAVIGATION ----------
     function showGame(id) {
-      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+      document.querySelectorAll("#games section").forEach(sec => sec.classList.remove("active"));
       document.getElementById(id).classList.add("active");
     }
 
-    // 1. QUIZ
+    // -------- QUIZ ----------
     const quizQuestions = [
-      {q:"Quelle est la capitale de la France ?", options:["Paris","Rome","Madrid"], answer:"Paris"},
-      {q:"2 + 2 = ?", options:["3","4","5"], answer:"4"},
-      {q:"La Terre est...", options:["Plate","Ronde","Carrée"], answer:"Ronde"},
-      {q:"Qui a peint la Joconde ?", options:["Picasso","Da Vinci","Van Gogh"], answer:"Da Vinci"},
-      {q:"Couleur du ciel ?", options:["Bleu","Vert","Rouge"], answer:"Bleu"}
+      {q:"Capitale de la France ?", options:["Paris","Rome","Madrid"], answer:"Paris"},
+      {q:"2+2=?", options:["3","4","5"], answer:"4"},
+      {q:"Couleur du ciel ?", options:["Bleu","Vert","Rouge"], answer:"Bleu"},
+      {q:"Qui a peint la Joconde ?", options:["Da Vinci","Picasso","Van Gogh"], answer:"Da Vinci"},
+      {q:"Planète rouge ?", options:["Mars","Jupiter","Venus"], answer:"Mars"},
+      {q:"Symbole chimique de l’eau ?", options:["H2O","O2","CO2"], answer:"H2O"},
+      {q:"Combien de continents ?", options:["5","6","7"], answer:"7"},
+      {q:"Langue officielle de Madagascar ?", options:["Français","Anglais","Malgache"], answer:"Malgache"},
+      {q:"Année du premier pas sur la lune ?", options:["1969","1975","1980"], answer:"1969"},
+      {q:"Vitesse de la lumière ?", options:["300 000 km/s","150 000 km/s","1 000 km/s"], answer:"300 000 km/s"}
     ];
-    let quizIndex = 0;
+    let quizIndex=0;
     function loadQuiz() {
-      let q = quizQuestions[quizIndex];
-      document.getElementById("quiz-question").innerText = q.q;
-      let optionsDiv = document.getElementById("quiz-options");
-      optionsDiv.innerHTML = "";
-      q.options.forEach(opt => {
-        let btn = document.createElement("button");
-        btn.innerText = opt;
-        btn.onclick = () => {
-          document.getElementById("quiz-result").innerText = 
-            opt === q.answer ? "✅ Correct !" : "❌ Faux !";
-        };
+      let q=quizQuestions[quizIndex];
+      document.getElementById("quiz-question").innerText=q.q;
+      let optionsDiv=document.getElementById("quiz-options");
+      optionsDiv.innerHTML="";
+      q.options.forEach(opt=>{
+        let btn=document.createElement("button");
+        btn.innerText=opt;
+        btn.onclick=()=>{document.getElementById("quiz-result").innerText= opt===q.answer?"✅ Correct !":"❌ Faux !";};
         optionsDiv.appendChild(btn);
       });
     }
-    function nextQuiz() {
-      quizIndex = (quizIndex + 1) % quizQuestions.length;
-      document.getElementById("quiz-result").innerText = "";
+    function nextQuiz(){
+      quizIndex=(quizIndex+1)%quizQuestions.length;
+      document.getElementById("quiz-result").innerText="";
       loadQuiz();
     }
     loadQuiz();
 
-    // 2. Devinette
-    let secret = Math.floor(Math.random()*100)+1;
-    function checkGuess() {
-      let g = parseInt(document.getElementById("guess").value);
-      if (g === secret) document.getElementById("result").innerText = "🎉 Bravo !";
-      else if (g < secret) document.getElementById("result").innerText = "Trop petit !";
-      else document.getElementById("result").innerText = "Trop grand !";
+    // -------- Devinette ----------
+    let secret=Math.floor(Math.random()*100)+1;
+    function checkGuess(){
+      let g=parseInt(document.getElementById("guess").value);
+      if(g===secret) document.getElementById("result").innerText="🎉 Bravo !";
+      else if(g<secret) document.getElementById("result").innerText="Trop petit !";
+      else document.getElementById("result").innerText="Trop grand !";
     }
 
-    // 3. Pierre Feuille Ciseaux
-    function playPFC(choice) {
-      const choices = ["pierre","feuille","ciseaux"];
-      let ai = choices[Math.floor(Math.random()*3)];
-      let res = "";
-      if (choice===ai) res = "Égalité !";
-      else if (
-        (choice==="pierre" && ai==="ciseaux") ||
-        (choice==="feuille" && ai==="pierre") ||
-        (choice==="ciseaux" && ai==="feuille")
-      ) res = "Tu gagnes 🎉";
-      else res = "Perdu 😢";
-      document.getElementById("pfc-result").innerText = `Toi: ${choice}, Ordi: ${ai} → ${res}`;
+    // -------- Pierre Feuille Ciseaux ----------
+    function playPFC(choice){
+      const choices=["pierre","feuille","ciseaux"];
+      let ai=choices[Math.floor(Math.random()*3)];
+      let res="";
+      if(choice===ai) res="Égalité !";
+      else if((choice==="pierre"&&ai==="ciseaux")||(choice==="feuille"&&ai==="pierre")||(choice==="ciseaux"&&ai==="feuille")) res="Tu gagnes 🎉";
+      else res="Perdu 😢";
+      document.getElementById("pfc-result").innerText=`Toi:${choice}, Ordi:${ai} → ${res}`;
     }
 
-    // 4. Memory
-    const symbols = ["🍎","🍎","🍌","🍌","🍒","🍒","🍇","🍇"];
-    let memoryGrid = document.getElementById("memory-grid");
-    let shuffled = symbols.sort(()=>0.5-Math.random());
+    // -------- Memory ----------
+    const symbols=["🍎","🍎","🍌","🍌","🍒","🍒","🍇","🍇"];
+    let memoryGrid=document.getElementById("memory-grid");
+    let shuffled=symbols.sort(()=>0.5-Math.random());
     shuffled.forEach(sym=>{
-      let card = document.createElement("div");
+      let card=document.createElement("div");
       card.className="card hidden";
-      card.innerText = sym;
-      card.onclick = ()=>flip(card);
+      card.innerText=sym;
+      card.onclick=()=>flip(card);
       memoryGrid.appendChild(card);
     });
-    let first=null, second=null;
+    let first=null,second=null;
     function flip(card){
       if(!card.classList.contains("hidden")) return;
       card.classList.remove("hidden");
       if(!first) first=card;
       else{
         second=card;
-        if(first.innerText===second.innerText){
-          first=null;second=null;
-        } else {
-          setTimeout(()=>{
-            first.classList.add("hidden");
-            second.classList.add("hidden");
-            first=null;second=null;
-          },1000);
+        if(first.innerText===second.innerText){ first=null; second=null; }
+        else{
+          setTimeout(()=>{first.classList.add("hidden"); second.classList.add("hidden"); first=null; second=null;},1000);
         }
       }
     }
 
-    // 5. Morpion
-    let board = Array(9).fill("");
+    // -------- Morpion ----------
+    let board=Array(9).fill("");
     let current="X";
     const boardDiv=document.getElementById("board");
     for(let i=0;i<9;i++){
@@ -251,17 +299,15 @@
       if(board[i]!=="") return;
       board[i]=current;
       cell.innerText=current;
-      if(checkWin()){
-        document.getElementById("winner").innerText=`${current} a gagné 🎉`;
-      }
+      if(checkWin()) document.getElementById("winner").innerText=`${current} a gagné 🎉`;
       current=current==="X"?"O":"X";
     }
     function checkWin(){
       const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-      return wins.some(([a,b,c])=>board[a] && board[a]===board[b] && board[a]===board[c]);
+      return wins.some(([a,b,c])=>board[a]&&board[a]===board[b]&&board[a]===board[c]);
     }
 
-    // 6. Réflexe
+    // -------- Réflexe ----------
     let start;
     function startReflex(){
       document.getElementById("square").style.display="none";
@@ -276,7 +322,7 @@
       },Math.random()*3000+1000);
     }
 
-    // 7. Pendu
+    // -------- Pendu ----------
     const words=["chat","maison","voiture","ordinateur","soleil"];
     let chosen=words[Math.floor(Math.random()*words.length)];
     let hiddenWord=Array(chosen.length).fill("_");
@@ -284,19 +330,16 @@
     function guessLetter(){
       let l=document.getElementById("letter").value;
       let found=false;
-      for(let i=0;i<chosen.length;i++){
-        if(chosen[i]===l){hiddenWord[i]=l;found=true;}
-      }
+      for(let i=0;i<chosen.length;i++){ if(chosen[i]===l){hiddenWord[i]=l;found=true;} }
       document.getElementById("word").innerText=hiddenWord.join(" ");
       if(!found) document.getElementById("pendu-result").innerText+=" ❌";
       if(hiddenWord.join("")===chosen) document.getElementById("pendu-result").innerText="🎉 Gagné !";
       document.getElementById("letter").value="";
     }
 
-    // 8. Calcul mental
+    // -------- Calcul mental ----------
     function newMath(){
-      let a=Math.floor(Math.random()*10);
-      let b=Math.floor(Math.random()*10);
+      let a=Math.floor(Math.random()*10), b=Math.floor(Math.random()*10);
       let op=Math.random()>0.5?"+":"-";
       window.currentMath={a,b,op};
       document.getElementById("math-question").innerText=`${a} ${op} ${b} = ?`;
